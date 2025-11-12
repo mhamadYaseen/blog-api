@@ -49,4 +49,38 @@ class CommentController extends Controller
 
         return response()->json(null, 204);
     }
+
+    /**
+     * Restore a soft-deleted comment.
+     */
+    public function restore(string $id): JsonResponse
+    {
+        $comment = Comment::onlyTrashed()->findOrFail($id);
+
+        $this->authorize('restore', $comment);
+
+        $comment->restore();
+        $comment->load('user', 'post');
+
+        return response()->json([
+            'message' => 'Comment restored successfully.',
+            'data' => new CommentResource($comment),
+        ]);
+    }
+
+    /**
+     * Permanently delete a soft-deleted comment.
+     */
+    public function forceDelete(string $id): JsonResponse
+    {
+        $comment = Comment::onlyTrashed()->findOrFail($id);
+
+        $this->authorize('forceDelete', $comment);
+
+        $comment->forceDelete();
+
+        return response()->json([
+            'message' => 'Comment permanently deleted.',
+        ], 200);
+    }
 }

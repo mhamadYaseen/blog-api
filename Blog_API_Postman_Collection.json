@@ -1,0 +1,1206 @@
+{
+	"info": {
+		"_postman_id": "blog-api-collection-2025",
+		"name": "Laravel Blog API",
+		"description": "Complete API collection for Laravel 12 Blog API with authentication, posts CRUD, comments, and soft deletes",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "post_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "comment_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "random_email",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "random_name",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate random user data",
+									"const timestamp = Date.now();",
+									"const randomNum = Math.floor(Math.random() * 10000);",
+									"",
+									"// Generate random name",
+									"const firstNames = ['John', 'Jane', 'Mike', 'Sarah', 'David', 'Emily', 'Alex', 'Maria', 'Chris', 'Lisa'];",
+									"const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];",
+									"const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];",
+									"const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];",
+									"const fullName = `${firstName} ${lastName}`;",
+									"",
+									"// Generate random email",
+									"const randomEmail = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${randomNum}@example.com`;",
+									"",
+									"// Generate random password",
+									"const password = 'Password123!';",
+									"",
+									"// Save to collection variables",
+									"pm.collectionVariables.set('random_name', fullName);",
+									"pm.collectionVariables.set('random_email', randomEmail);",
+									"pm.collectionVariables.set('random_password', password);",
+									"",
+									"console.log('Generated User:');",
+									"console.log('Name:', fullName);",
+									"console.log('Email:', randomEmail);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"token\", jsonData.token);",
+									"    console.log('✅ Registration successful! Token saved.');",
+									"    ",
+									"    pm.test(\"Status code is 201\", function () {",
+									"        pm.response.to.have.status(201);",
+									"    });",
+									"    ",
+									"    pm.test(\"Response contains token\", function () {",
+									"        pm.expect(jsonData).to.have.property('token');",
+									"    });",
+									"    ",
+									"    pm.test(\"Response contains user data\", function () {",
+									"        pm.expect(jsonData).to.have.property('user');",
+									"        pm.expect(jsonData.user).to.have.property('name');",
+									"        pm.expect(jsonData.user).to.have.property('email');",
+									"    });",
+									"} else {",
+									"    console.log('❌ Registration failed:', pm.response.json());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"{{random_name}}\",\n    \"email\": \"{{random_email}}\",\n    \"password\": \"{{random_password}}\",\n    \"password_confirmation\": \"{{random_password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/register",
+							"host": ["{{base_url}}"],
+							"path": ["register"]
+						},
+						"description": "Register a new user with auto-generated data and receive authentication token"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"token\", jsonData.token);",
+									"    console.log('✅ Login successful! Token saved.');",
+									"    ",
+									"    pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"    ",
+									"    pm.test(\"Response contains token\", function () {",
+									"        pm.expect(jsonData).to.have.property('token');",
+									"    });",
+									"} else {",
+									"    console.log('❌ Login failed:', pm.response.json());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{random_email}}\",\n    \"password\": \"{{random_password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": ["{{base_url}}"],
+							"path": ["login"]
+						},
+						"description": "Login with existing credentials (uses last registered user's email)"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    console.log('✅ Logout successful!');",
+									"    ",
+									"    pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"    ",
+									"    pm.test(\"Response contains success message\", function () {",
+									"        var jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('message');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/logout",
+							"host": ["{{base_url}}"],
+							"path": ["logout"]
+						},
+						"description": "Logout and revoke current authentication token"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    console.log('✅ User data retrieved successfully!');",
+									"    ",
+									"    pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"    ",
+									"    pm.test(\"Response contains user data\", function () {",
+									"        var jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('id');",
+									"        pm.expect(jsonData).to.have.property('name');",
+									"        pm.expect(jsonData).to.have.property('email');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/user",
+							"host": ["{{base_url}}"],
+							"path": ["user"]
+						},
+						"description": "Get authenticated user details"
+					},
+					"response": []
+				}
+			],
+			"description": "User authentication endpoints"
+		},
+		{
+			"name": "Posts",
+			"item": [
+				{
+					"name": "List All Posts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    // Save first post ID for future requests",
+									"    if (jsonData.data && jsonData.data.length > 0) {",
+									"        pm.collectionVariables.set('post_id', jsonData.data[0].id);",
+									"        console.log('✅ Posts retrieved! First post ID saved:', jsonData.data[0].id);",
+									"    }",
+									"    ",
+									"    pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"    ",
+									"    pm.test(\"Response contains data array\", function () {",
+									"        pm.expect(jsonData).to.have.property('data');",
+									"        pm.expect(jsonData.data).to.be.an('array');",
+									"    });",
+									"    ",
+									"    pm.test(\"Response contains pagination metadata\", function () {",
+									"        pm.expect(jsonData).to.have.property('links');",
+									"        pm.expect(jsonData).to.have.property('meta');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/posts?page=1",
+							"host": ["{{base_url}}"],
+							"path": ["posts"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number"
+								},
+								{
+									"key": "search",
+									"value": "laravel",
+									"description": "Search keyword",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get paginated list of all posts (15 per page)"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Posts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/posts/search?q=laravel",
+							"host": ["{{base_url}}"],
+							"path": ["posts", "search"],
+							"query": [
+								{
+									"key": "q",
+									"value": "laravel",
+									"description": "Search query"
+								}
+							]
+						},
+						"description": "Search posts by title or content"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single Post",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/posts/1",
+							"host": ["{{base_url}}"],
+							"path": ["posts", "1"]
+						},
+						"description": "Get details of a specific post"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Post (JSON)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate random blog post content",
+									"const titles = [",
+									"    'Getting Started with Laravel 12',",
+									"    'Building RESTful APIs: Best Practices',",
+									"    'Understanding Laravel Sanctum Authentication',",
+									"    'Mastering Eloquent Relationships',",
+									"    'Laravel Testing: A Complete Guide',",
+									"    'API Development with Laravel',",
+									"    'Advanced Laravel Features You Should Know',",
+									"    'Building Scalable Applications with Laravel',",
+									"    'Laravel Performance Optimization Tips',",
+									"    'Modern PHP Development in 2025'",
+									"];",
+									"",
+									"const contentTemplates = [",
+									"    'This comprehensive guide covers everything you need to know about {topic}. We\\'ll explore best practices, common pitfalls, and advanced techniques that will help you become more proficient.',",
+									"    'In this article, we dive deep into {topic}. You\\'ll learn practical examples, real-world use cases, and expert tips that will take your development skills to the next level.',",
+									"    'Discover the power of {topic} in modern web development. This tutorial provides step-by-step instructions, code examples, and best practices for building production-ready applications.',",
+									"    'Learn how to leverage {topic} effectively in your projects. We cover fundamental concepts, advanced patterns, and proven strategies used by experienced developers.',",
+									"    'Master {topic} with this detailed tutorial. From basics to advanced concepts, this guide will equip you with the knowledge and skills needed for professional development.'",
+									"];",
+									"",
+									"const randomTitle = titles[Math.floor(Math.random() * titles.length)];",
+									"const randomContent = contentTemplates[Math.floor(Math.random() * contentTemplates.length)].replace('{topic}', randomTitle.toLowerCase());",
+									"",
+									"pm.collectionVariables.set('random_post_title', randomTitle);",
+									"pm.collectionVariables.set('random_post_content', randomContent);",
+									"",
+									"console.log('Generated Post:');",
+									"console.log('Title:', randomTitle);",
+									"console.log('Content:', randomContent.substring(0, 100) + '...');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('post_id', jsonData.data.id);",
+									"    console.log('✅ Post created successfully! ID saved:', jsonData.data.id);",
+									"    ",
+									"    pm.test(\"Status code is 201\", function () {",
+									"        pm.response.to.have.status(201);",
+									"    });",
+									"    ",
+									"    pm.test(\"Response contains post data\", function () {",
+									"        pm.expect(jsonData).to.have.property('data');",
+									"        pm.expect(jsonData.data).to.have.property('id');",
+									"        pm.expect(jsonData.data).to.have.property('title');",
+									"        pm.expect(jsonData.data).to.have.property('content');",
+									"    });",
+									"} else {",
+									"    console.log('❌ Post creation failed:', pm.response.json());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"{{random_post_title}}\",\n    \"content\": \"{{random_post_content}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/posts",
+							"host": ["{{base_url}}"],
+							"path": ["posts"]
+						},
+						"description": "Create a new post with auto-generated content (requires authentication)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Post with Image",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate random blog post content for image post",
+									"const titles = [",
+									"    'Beautiful Laravel Code Examples',",
+									"    'Visual Guide to API Development',",
+									"    'Screenshots from My Latest Project',",
+									"    'Infographic: Laravel Lifecycle',",
+									"    'Laravel Architecture Diagram'",
+									"];",
+									"",
+									"const randomTitle = titles[Math.floor(Math.random() * titles.length)];",
+									"const content = `This post includes visual content to enhance the reading experience. ${randomTitle} provides valuable insights with accompanying images.`;",
+									"",
+									"pm.collectionVariables.set('random_post_title', randomTitle);",
+									"pm.collectionVariables.set('random_post_content', content);",
+									"",
+									"console.log('Generated Image Post:');",
+									"console.log('Title:', randomTitle);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('post_id', jsonData.data.id);",
+									"    console.log('✅ Post with image created! ID saved:', jsonData.data.id);",
+									"    ",
+									"    pm.test(\"Status code is 201\", function () {",
+									"        pm.response.to.have.status(201);",
+									"    });",
+									"    ",
+									"    pm.test(\"Response contains image path\", function () {",
+									"        pm.expect(jsonData.data).to.have.property('image');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "title",
+									"value": "{{random_post_title}}",
+									"type": "text"
+								},
+								{
+									"key": "content",
+									"value": "{{random_post_content}}",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/posts",
+							"host": ["{{base_url}}"],
+							"path": ["posts"]
+						},
+						"description": "Create a new post with image upload (select an image file in the body)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Post",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate updated content",
+									"const updatePrefixes = ['Updated:', 'Revised:', 'Enhanced:', 'Improved:', 'Edited:'];",
+									"const prefix = updatePrefixes[Math.floor(Math.random() * updatePrefixes.length)];",
+									"",
+									"const currentTitle = pm.collectionVariables.get('random_post_title') || 'My Blog Post';",
+									"const updatedTitle = `${prefix} ${currentTitle}`;",
+									"",
+									"const updates = [",
+									"    'This post has been updated with new information and insights.',",
+									"    'Content has been revised to include the latest developments and best practices.',",
+									"    'Updated with additional examples and improved explanations.',",
+									"    'Enhanced with new sections covering advanced topics and use cases.',",
+									"    'Edited for clarity and updated with recent changes in the ecosystem.'",
+									"];",
+									"",
+									"const updatedContent = updates[Math.floor(Math.random() * updates.length)];",
+									"",
+									"pm.collectionVariables.set('updated_post_title', updatedTitle);",
+									"pm.collectionVariables.set('updated_post_content', updatedContent);",
+									"",
+									"console.log('Updated Post Content:');",
+									"console.log('Title:', updatedTitle);",
+									"console.log('Content:', updatedContent);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    console.log('✅ Post updated successfully!');",
+									"    ",
+									"    pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"    ",
+									"    pm.test(\"Post was updated\", function () {",
+									"        var jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('data');",
+									"    });",
+									"} else {",
+									"    console.log('❌ Update failed:', pm.response.json());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"{{updated_post_title}}\",\n    \"content\": \"{{updated_post_content}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/posts/{{post_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["posts", "{{post_id}}"]
+						},
+						"description": "Update a post with auto-generated content (only owner can update)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Post (Soft Delete)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    console.log('✅ Post soft deleted successfully!');",
+									"    ",
+									"    pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"    ",
+									"    pm.test(\"Response contains success message\", function () {",
+									"        var jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('message');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/posts/{{post_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["posts", "{{post_id}}"]
+						},
+						"description": "Soft delete a post (only owner can delete)"
+					},
+					"response": []
+				},
+				{
+					"name": "List Trashed Posts",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/posts/trashed/list",
+							"host": ["{{base_url}}"],
+							"path": ["posts", "trashed", "list"]
+						},
+						"description": "Get list of soft-deleted posts"
+					},
+					"response": []
+				},
+				{
+					"name": "Restore Post",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    console.log('✅ Post restored successfully!');",
+									"    ",
+									"    pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"    ",
+									"    pm.test(\"Response contains success message\", function () {",
+									"        var jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('message');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/posts/{{post_id}}/restore",
+							"host": ["{{base_url}}"],
+							"path": ["posts", "{{post_id}}", "restore"]
+						},
+						"description": "Restore a soft-deleted post"
+					},
+					"response": []
+				},
+				{
+					"name": "Force Delete Post",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    console.log('✅ Post permanently deleted!');",
+									"    ",
+									"    pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"    ",
+									"    pm.test(\"Response contains success message\", function () {",
+									"        var jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('message');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/posts/{{post_id}}/force",
+							"host": ["{{base_url}}"],
+							"path": ["posts", "{{post_id}}", "force"]
+						},
+						"description": "Permanently delete a post"
+					},
+					"response": []
+				}
+			],
+			"description": "Blog post management endpoints"
+		},
+		{
+			"name": "Comments",
+			"item": [
+				{
+					"name": "List Post Comments",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    // Save first comment ID for future requests",
+									"    if (jsonData.data && jsonData.data.length > 0) {",
+									"        pm.collectionVariables.set('comment_id', jsonData.data[0].id);",
+									"        console.log('✅ Comments retrieved! First comment ID saved:', jsonData.data[0].id);",
+									"    }",
+									"    ",
+									"    pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"    ",
+									"    pm.test(\"Response contains comments array\", function () {",
+									"        pm.expect(jsonData).to.have.property('data');",
+									"        pm.expect(jsonData.data).to.be.an('array');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/posts/{{post_id}}/comments",
+							"host": ["{{base_url}}"],
+							"path": ["posts", "{{post_id}}", "comments"]
+						},
+						"description": "Get all comments for a specific post"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Comment",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate random comment",
+									"const comments = [",
+									"    'Great article! This really helped me understand the concept better.',",
+									"    'Thanks for sharing this valuable information. Very insightful!',",
+									"    'Excellent post! I learned a lot from this.',",
+									"    'This is exactly what I was looking for. Appreciate the detailed explanation.',",
+									"    'Very well written! The examples are really helpful.',",
+									"    'Amazing content! Looking forward to more posts like this.',",
+									"    'Thanks for the tutorial! This cleared up a lot of confusion.',",
+									"    'Brilliant explanation! The step-by-step approach is perfect.',",
+									"    'This is gold! Bookmarking this for future reference.',",
+									"    'Love this! Very practical and easy to follow.'",
+									"];",
+									"",
+									"const randomComment = comments[Math.floor(Math.random() * comments.length)];",
+									"pm.collectionVariables.set('random_comment', randomComment);",
+									"",
+									"console.log('Generated Comment:', randomComment);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('comment_id', jsonData.data.id);",
+									"    console.log('✅ Comment created successfully! ID saved:', jsonData.data.id);",
+									"    ",
+									"    pm.test(\"Status code is 201\", function () {",
+									"        pm.response.to.have.status(201);",
+									"    });",
+									"    ",
+									"    pm.test(\"Response contains comment data\", function () {",
+									"        pm.expect(jsonData).to.have.property('data');",
+									"        pm.expect(jsonData.data).to.have.property('id');",
+									"        pm.expect(jsonData.data).to.have.property('comment');",
+									"    });",
+									"} else {",
+									"    console.log('❌ Comment creation failed:', pm.response.json());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"comment\": \"{{random_comment}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/posts/{{post_id}}/comments",
+							"host": ["{{base_url}}"],
+							"path": ["posts", "{{post_id}}", "comments"]
+						},
+						"description": "Add a comment to a post with auto-generated text (requires authentication)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Comment (Soft Delete)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    console.log('✅ Comment soft deleted successfully!');",
+									"    ",
+									"    pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"    ",
+									"    pm.test(\"Response contains success message\", function () {",
+									"        var jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('message');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/comments/{{comment_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["comments", "{{comment_id}}"]
+						},
+						"description": "Soft delete a comment (only owner can delete)"
+					},
+					"response": []
+				},
+				{
+					"name": "Restore Comment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    console.log('✅ Comment restored successfully!');",
+									"    ",
+									"    pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"    ",
+									"    pm.test(\"Response contains success message\", function () {",
+									"        var jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('message');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/comments/{{comment_id}}/restore",
+							"host": ["{{base_url}}"],
+							"path": ["comments", "{{comment_id}}", "restore"]
+						},
+						"description": "Restore a soft-deleted comment"
+					},
+					"response": []
+				},
+				{
+					"name": "Force Delete Comment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    console.log('✅ Comment permanently deleted!');",
+									"    ",
+									"    pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"    ",
+									"    pm.test(\"Response contains success message\", function () {",
+									"        var jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('message');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/comments/{{comment_id}}/force",
+							"host": ["{{base_url}}"],
+							"path": ["comments", "{{comment_id}}", "force"]
+						},
+						"description": "Permanently delete a comment"
+					},
+					"response": []
+				}
+			],
+			"description": "Comment management endpoints"
+		}
+	]
+}

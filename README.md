@@ -299,8 +299,7 @@ Authorization: Bearer {token}
       "image": "images/post1.jpg",
       "user": {
         "id": 1,
-        "name": "John Doe",
-        "email": "john@example.com"
+        "name": "John Doe"
       },
       "created_at": "2025-11-12T10:30:00.000000Z",
       "updated_at": "2025-11-12T10:30:00.000000Z"
@@ -326,8 +325,7 @@ Authorization: Bearer {token}
         "image": "images/post1.jpg",
         "user": {
             "id": 1,
-            "name": "John Doe",
-            "email": "john@example.com"
+            "name": "John Doe"
         },
         "comments_count": 5,
         "created_at": "2025-11-12T10:30:00.000000Z",
@@ -419,6 +417,69 @@ Authorization: Bearer {token}
 
 **Response (204 No Content)**
 
+**Note:** This performs a soft delete. The post is marked as deleted but remains in the database.
+
+---
+
+#### List Trashed Posts (Authenticated)
+
+**GET** `/api/posts/trashed/list`
+
+**Headers:**
+
+```
+Authorization: Bearer {token}
+```
+
+**Response (200 OK):** Returns paginated list of soft-deleted posts.
+
+---
+
+#### Restore Deleted Post (Authenticated, Owner Only)
+
+**POST** `/api/posts/{id}/restore`
+
+**Headers:**
+
+```
+Authorization: Bearer {token}
+```
+
+**Response (200 OK):**
+
+```json
+{
+    "message": "Post restored successfully.",
+    "data": {
+        "id": 1,
+        "title": "Restored Post",
+        ...
+    }
+}
+```
+
+---
+
+#### Permanently Delete Post (Authenticated, Owner Only)
+
+**DELETE** `/api/posts/{id}/force`
+
+**Headers:**
+
+```
+Authorization: Bearer {token}
+```
+
+**Response (200 OK):**
+
+```json
+{
+    "message": "Post permanently deleted."
+}
+```
+
+**Warning:** This permanently removes the post from the database. This action cannot be undone.
+
 ---
 
 ### Comments Endpoints
@@ -492,6 +553,53 @@ Authorization: Bearer {token}
 
 **Response (204 No Content)**
 
+**Note:** This performs a soft delete. The comment is marked as deleted but remains in the database.
+
+---
+
+#### Restore Deleted Comment (Authenticated, Owner Only)
+
+**POST** `/api/comments/{id}/restore`
+
+**Headers:**
+
+```
+Authorization: Bearer {token}
+```
+
+**Response (200 OK):**
+
+```json
+{
+    "message": "Comment restored successfully.",
+    "data": {
+        "id": 1,
+        "comment": "Restored comment text",
+        ...
+    }
+}
+```
+
+---
+
+#### Permanently Delete Comment (Authenticated, Owner Only)
+
+**DELETE** `/api/comments/{id}/force`
+
+**Headers:**
+
+```
+Authorization: Bearer {token}
+```
+
+**Response (200 OK):**
+
+```json
+{
+    "message": "Comment permanently deleted."
+}
+```
+
 ---
 
 ### Search Posts
@@ -547,9 +655,72 @@ All error responses follow this format:
 }
 ```
 
+---
+
+## 📮 Postman Collection
+
+A complete **enhanced** Postman collection is included for easy API testing with automatic data generation!
+
+**File:** `Blog_API_Postman_Collection.json`
+
+### How to Import
+
+1. Open Postman
+2. Click **Import** button
+3. Select the `Blog_API_Postman_Collection.json` file
+4. The collection will be imported with all endpoints organized by category
+
+### ✨ New Features (v2.0)
+
+-   ✅ **Auto-generated data** - Random names, emails, titles, content, comments
+-   ✅ **Smart variable management** - Automatic saving of IDs (post_id, comment_id)
+-   ✅ **Pre-request scripts** - Generate realistic test data before each request
+-   ✅ **Test scripts** - Verify responses and log success/failure
+-   ✅ **Console logging** - See generated data and results in Postman Console
+-   ✅ **Zero manual input** - Just click Send, all data is generated
+-   ✅ **Automatic token management** - Login/Register automatically saves token
+-   ✅ **Environment variables** - `base_url`, `token`, `post_id`, `comment_id`, etc.
+
+### Included Endpoints
+
+**Authentication (4 endpoints):**
+
+-   Register, Login, Logout, Get Current User
+
+**Posts (11 endpoints):**
+
+-   List, Search, View, Create, Create with Image, Update, Delete
+-   List Trashed, Restore, Force Delete
+
+**Comments (5 endpoints):**
+
+-   List, Create, Delete, Restore, Force Delete
+
+### Usage
+
+1. Import the collection
+2. Click **Register** → Auto-generates user and saves token
+3. Click **Create Post** → Auto-generates title and content
+4. Click **Create Comment** → Auto-generates comment text
+5. All IDs are automatically saved and reused in subsequent requests!
+
+### 📘 Complete Guide
+
+See **`POSTMAN_COLLECTION_GUIDE.md`** for:
+
+-   Detailed usage instructions
+-   Response format examples
+-   Testing workflows
+-   Troubleshooting tips
+-   Privacy notes (user emails hidden in posts/comments)
+
+---
+
 ## 🧪 Running Tests
 
-Run the test suite:
+The project includes comprehensive test coverage with **45 tests** covering all features.
+
+### Run Tests
 
 ```bash
 # Run all tests
@@ -561,8 +732,34 @@ php artisan test
 # Run specific test file
 php artisan test --filter=PostTest
 
-# Run with coverage
+# Run specific test method
+php artisan test --filter=test_user_can_register
+
+# Run with coverage (requires Xdebug)
 php artisan test --coverage
+```
+
+### Test Coverage
+
+**Feature Tests (30 tests):**
+
+-   ✅ Authentication: Registration, login, logout (6 tests)
+-   ✅ Posts CRUD: Create, read, update, delete with authorization (15 tests)
+-   ✅ Comments: Create, list, delete with authorization (9 tests)
+
+**Unit Tests (15 tests):**
+
+-   ✅ User Model: Relationships, authentication (5 tests)
+-   ✅ Post Model: Relationships, soft deletes (5 tests)
+-   ✅ Comment Model: Relationships, soft deletes (5 tests)
+
+### Test Results
+
+All tests use `RefreshDatabase` trait for isolated database testing. Expected output:
+
+```
+Tests:  45 passed (184 assertions)
+Duration: 0.60s
 ```
 
 ## 📁 Project Structure
@@ -630,6 +827,8 @@ blog-api/
 6. **Validation**: All inputs are validated using Form Request classes
 
 7. **API Resources**: All responses use API Resources for consistent JSON formatting
+
+8. **Privacy**: User emails are only returned in authentication endpoints (`/register`, `/login`, `/user`). Posts and comments responses only show user `id` and `name` to protect user privacy
 
 ## 📄 License
 

@@ -128,4 +128,59 @@ class PostController extends Controller
 
         return PostResource::collection($posts);
     }
+
+    /**
+     * Display a listing of trashed posts.
+     */
+    public function trashed(Request $request): AnonymousResourceCollection
+    {
+        $this->authorize('viewAny', Post::class);
+
+        $posts = Post::onlyTrashed()
+            ->with('user')
+            ->withCount('comments')
+            ->latest('deleted_at')
+            ->paginate(15);
+
+        return PostResource::collection($posts);
+    }
+
+    /**
+     * Restore a soft-deleted post.
+     */
+    public function restore(string $id): JsonResponse
+    {
+        $post = Post::onlyTrashed()->findOrFail($id);
+
+        $this->authorize('restore', $post);
+
+        $post->restore();
+        $post->load('user')->loadCount('comments');
+
+        return response()->json([
+            'message' => 'Post restored successfully.',
+            'data' => new PostResource($post),
+        ]);
+    }
+
+    /**
+     * Permanently delete a soft-deleted post.
+     */
+    public function forceDelete(string $id): JsonResponse
+    {
+        $post = Post::onlyTrashed()->findOrFail($id);
+
+        $this->authorize('forceDelete', $post);
+
+        // Delete image if exists
+        if ($post->image && ! filter_var($post->image, FILTER_VALIDATE_URL)) {
+            Storage::disk('public')->delete($post->image);
+        }
+
+        $post->forceDelete();
+
+        return response()->json([
+            'message' => 'Post permanently deleted.',
+        ], 200);
+    }
 }

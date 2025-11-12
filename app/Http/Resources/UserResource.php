@@ -14,6 +14,20 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // For nested user data (in posts/comments), only show id and name
+        // For direct user endpoints, show full details
+        $isNested = $request->route() &&
+            (str_contains($request->route()->uri(), 'posts') ||
+                str_contains($request->route()->uri(), 'comments'));
+
+        if ($isNested) {
+            return [
+                'id' => $this->id,
+                'name' => $this->name,
+            ];
+        }
+
+        // Full user data for auth/user endpoints
         return [
             'id' => $this->id,
             'name' => $this->name,

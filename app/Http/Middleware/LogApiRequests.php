@@ -33,7 +33,7 @@ class LogApiRequests
         $duration = microtime(true) - $startTime;
         Log::info('API Response', [
             'status' => $response->status(),
-            'duration' => round($duration * 1000, 2) . 'ms',
+            'duration' => round($duration * 1000, 2).'ms',
         ]);
 
         return $response;
