@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PostResource extends JsonResource
+class CommentResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,11 +16,9 @@ class PostResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'title' => $this->title,
-            'content' => $this->content,
-            'image' => $this->image ? (filter_var($this->image, FILTER_VALIDATE_URL) ? $this->image : asset('storage/' . $this->image)) : null,
+            'comment' => $this->comment,
             'user' => new UserResource($this->whenLoaded('user')),
-            'comments_count' => $this->when(isset($this->comments_count), $this->comments_count),
+            'post_id' => $this->post_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

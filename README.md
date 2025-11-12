@@ -27,8 +27,13 @@ This is a pure API-only Laravel application that provides endpoints for managing
 -   ✅ Image upload support for posts
 -   ✅ Comments system for posts
 -   ✅ Authorization (only owners can update/delete their content)
--   ✅ Search functionality for posts
+-   ✅ Search functionality for posts (query parameter & dedicated endpoint)
 -   ✅ API Resources for consistent JSON responses
+-   ✅ Pagination (15 posts per page)
+-   ✅ Factory & Seeder support for test data and fake images
+-   ✅ Soft Deletes for posts and comments
+-   ✅ API Rate Limiting (60 requests per minute)
+-   ✅ Request/Response Logging middleware
 -   ✅ Comprehensive test coverage
 
 ## 🔧 Prerequisites
@@ -110,14 +115,30 @@ php artisan migrate
 This will create the following tables:
 
 -   `users` - User accounts
--   `posts` - Blog posts with user relationship
--   `comments` - Comments on posts
+-   `posts` - Blog posts with user relationship and soft deletes
+-   `comments` - Comments on posts with soft deletes
 -   `personal_access_tokens` - Sanctum authentication tokens
 
 ### Step 3: (Optional) Seed Sample Data
 
+To populate the database with test data for development:
+
 ```bash
 php artisan db:seed
+```
+
+This will create:
+
+-   **5 users** with random names and emails
+-   **20 blog posts** (4 posts per user) with:
+    -   Realistic titles and content using Faker
+    -   Random images from [picsum.photos](https://picsum.photos)
+-   **60-100 comments** (2-5 random comments per post)
+
+To refresh and reseed the entire database:
+
+```bash
+php artisan migrate:fresh --seed
 ```
 
 ## 🚀 Running the Application
@@ -156,6 +177,27 @@ php artisan pail
 ```
 http://localhost:8000/api
 ```
+
+### Rate Limiting
+
+All API endpoints are rate-limited to **60 requests per minute** per user/IP address. When the limit is exceeded, you'll receive a `429 Too Many Requests` response.
+
+Rate limit headers are included in all responses:
+
+-   `X-RateLimit-Limit`: Maximum requests allowed
+-   `X-RateLimit-Remaining`: Remaining requests in current window
+-   `Retry-After`: Seconds until rate limit resets (only on 429 responses)
+
+### Request Logging
+
+All API requests and responses are automatically logged for monitoring and debugging purposes. Logs include:
+
+-   HTTP method, URL, and IP address
+-   Authenticated user ID (if applicable)
+-   Response status code and duration
+-   User agent information
+
+View logs in real-time with: `composer dev` or `php artisan pail`
 
 ### Authentication Endpoints
 

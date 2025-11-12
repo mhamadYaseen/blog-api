@@ -109,4 +109,23 @@ class PostController extends Controller
 
         return response()->json(null, 204);
     }
+
+    /**
+     * Search for posts by title or content.
+     */
+    public function search(Request $request): AnonymousResourceCollection
+    {
+        $search = $request->input('q', '');
+
+        $posts = Post::with('user')
+            ->withCount('comments')
+            ->where(function ($query) use ($search) {
+                $query->where('title', 'like', "%{$search}%")
+                    ->orWhere('content', 'like', "%{$search}%");
+            })
+            ->latest()
+            ->paginate(15);
+
+        return PostResource::collection($posts);
+    }
 }
