@@ -2,28 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Auth\LoginAction;
+use App\Actions\Auth\LogoutAction;
+use App\Actions\Auth\RegisterUserAction;
+use App\DTOs\LoginData;
+use App\DTOs\RegisterUserData;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
-use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
     /**
      * Register a new user.
      */
-    public function register(RegisterRequest $request): JsonResponse
+    public function register(RegisterRequest $request, RegisterUserAction $action): JsonResponse
     {
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        $dto = new RegisterUserData(
+            name: $request->validated()['name'],
+            email: $request->validated()['email'],
+            password: $request->validated()['password']
+        );
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $result = $action($dto);
+        $user = $result['user'];
 
         return response()->json([
             'user' => [
@@ -32,23 +35,29 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'created_at' => $user->created_at,
             ],
-            'token' => $token,
+            'token' => $result['token'],
         ], 201);
     }
 
     /**
      * Login user and create token.
      */
-    public function login(LoginRequest $request): JsonResponse
+    public function login(LoginRequest $request, LoginAction $action): JsonResponse
     {
-        if (! Auth::attempt($request->only('email', 'password'))) {
+        $dto = new LoginData(
+            email: $request->validated()['email'],
+            password: $request->validated()['password']
+        );
+
+        $result = $action($dto);
+
+        if (!$result) {
             return response()->json([
                 'message' => 'Invalid login credentials',
             ], 401);
         }
 
-        $user = User::where('email', $request->email)->firstOrFail();
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $user = $result['user'];
 
         return response()->json([
             'user' => [
@@ -56,17 +65,16 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
             ],
-            'token' => $token,
+            'token' => $result['token'],
         ], 200);
     }
 
     /**
      * Logout user (Revoke the token).
      */
-    public function logout(Request $request): JsonResponse
+    public function logout(Request $request, LogoutAction $action): JsonResponse
     {
-        // Revoke just the current token
-        $request->user()->currentAccessToken()->delete();
+        $action($request->user());
 
         return response()->json([
             'message' => 'Logged out successfully',
