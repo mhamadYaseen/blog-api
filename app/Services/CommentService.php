@@ -17,17 +17,4 @@ class CommentService
     {
         return DB::transaction(fn() => $comment->delete());
     }
-
-    public function restore(Comment $comment): Comment
-    {
-        return DB::transaction(function () use ($comment) {
-            $comment->restore();
-            return $comment->refresh();
-        });
-    }
-
-    public function forceDelete(Comment $comment): bool
-    {
-        return DB::transaction(fn() => $comment->forceDelete());
-    }
 }

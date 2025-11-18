@@ -28,7 +28,7 @@ class PostTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'data' => [
-                    '*' => ['id', 'title', 'content', 'image', 'user', 'created_at'],
+                    '*' => ['id', 'title', 'content', 'image', 'image_thumb', 'user', 'created_at'],
                 ],
                 'links',
                 'meta',
@@ -120,9 +120,52 @@ class PostTest extends TestCase
 
         $response->assertStatus(201);
 
-        $this->assertDatabaseHas('posts', [
-            'title' => 'Post with Image',
+        $postId = $response->json('data.id');
+
+        $this->assertNotNull($response->json('data.image'));
+        $this->assertNotNull($response->json('data.image_thumb'));
+
+        $this->assertDatabaseHas('media', [
+            'model_type' => Post::class,
+            'model_id' => $postId,
+            'collection_name' => Post::COVER_IMAGE_COLLECTION,
         ]);
+    }
+
+    public function test_updating_post_replaces_cover_image(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('test-token')->plainTextToken;
+
+        $createResponse = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post('/api/posts', [
+                'title' => 'Initial Title',
+                'content' => 'Initial content',
+                'image' => UploadedFile::fake()->image('initial.jpg'),
+            ]);
+
+        $createResponse->assertStatus(201);
+
+        $postId = $createResponse->json('data.id');
+        $post = Post::findOrFail($postId);
+        $initialMediaId = $post->getFirstMedia(Post::COVER_IMAGE_COLLECTION)->id;
+
+        $updateResponse = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post("/api/posts/{$postId}", [
+                '_method' => 'PUT',
+                'title' => 'Updated Title',
+                'content' => 'Updated content',
+                'image' => UploadedFile::fake()->image('updated.jpg'),
+            ]);
+
+        $updateResponse->assertStatus(200);
+
+        $post->refresh();
+        $newMedia = $post->getFirstMedia(Post::COVER_IMAGE_COLLECTION);
+
+        $this->assertNotNull($newMedia);
+        $this->assertNotEquals($initialMediaId, $newMedia->id);
+        $this->assertCount(1, $post->getMedia(Post::COVER_IMAGE_COLLECTION));
     }
 
     public function test_owner_can_update_their_post(): void
@@ -176,7 +219,32 @@ class PostTest extends TestCase
             ->deleteJson("/api/posts/{$post->id}");
 
         $response->assertStatus(204);
-        $this->assertSoftDeleted('posts', ['id' => $post->id]);
+        $this->assertDatabaseMissing('posts', ['id' => $post->id]);
+    }
+
+    public function test_deleting_post_removes_media_records(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('test-token')->plainTextToken;
+
+        $createResponse = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post('/api/posts', [
+                'title' => 'Media Post',
+                'content' => 'Media content',
+                'image' => UploadedFile::fake()->image('cover.jpg'),
+            ]);
+
+        $postId = $createResponse->json('data.id');
+
+        $deleteResponse = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->deleteJson("/api/posts/{$postId}");
+
+        $deleteResponse->assertStatus(204);
+
+        $this->assertDatabaseMissing('media', [
+            'model_type' => Post::class,
+            'model_id' => $postId,
+        ]);
     }
 
     public function test_non_owner_cannot_delete_post(): void
@@ -226,46 +294,5 @@ class PostTest extends TestCase
             ->assertJsonStructure([
                 'meta' => ['current_page', 'last_page', 'per_page', 'total'],
             ]);
-    }
-
-    public function test_owner_can_restore_deleted_post(): void
-    {
-        $user = User::factory()->create();
-        $post = Post::factory()->create(['user_id' => $user->id]);
-        $post->delete();
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->postJson("/api/posts/{$post->id}/restore");
-
-        $response->assertStatus(200)
-            ->assertJson([
-                'message' => 'Post restored successfully.',
-            ]);
-
-        $this->assertDatabaseHas('posts', [
-            'id' => $post->id,
-            'deleted_at' => null,
-        ]);
-    }
-
-    public function test_owner_can_force_delete_post(): void
-    {
-        $user = User::factory()->create();
-        $post = Post::factory()->create(['user_id' => $user->id]);
-        $post->delete();
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->deleteJson("/api/posts/{$post->id}/force");
-
-        $response->assertStatus(200)
-            ->assertJson([
-                'message' => 'Post permanently deleted.',
-            ]);
-
-        $this->assertDatabaseMissing('posts', [
-            'id' => $post->id,
-        ]);
     }
 }

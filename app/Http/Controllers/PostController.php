@@ -4,38 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Actions\Post\CreatePostAction;
 use App\Actions\Post\DeletePostAction;
-use App\Actions\Post\ForceDeletePostAction;
-use App\Actions\Post\RestorePostAction;
+use App\Actions\Post\ListPostsAction;
 use App\Actions\Post\UpdatePostAction;
-use App\DTOs\CreatePostData;
-use App\DTOs\UpdatePostData;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 
 class PostController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request, ListPostsAction $action): AnonymousResourceCollection
     {
-        $query = Post::with('user')->withCount('comments')->latest();
-
-        // Search functionality
-        if ($request->has('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('content', 'like', "%{$search}%");
-            });
-        }
-
-        $posts = $query->paginate(15);
+        $posts = $action->handle($request->get('search'));
 
         return PostResource::collection($posts);
     }
@@ -43,71 +29,59 @@ class PostController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StorePostRequest $request, CreatePostAction $action): JsonResponse
+    public function store(StorePostRequest $request, CreatePostAction $action): PostResource
     {
         $validated = $request->validated();
 
-        // Build DTO from validated data
-        $dto = new CreatePostData(
+        $post = $action->handle(
             title: $validated['title'],
             content: $validated['content'],
-            imagePath: null, // Will be handled by service
-            userId: $request->user()->id
+            userId: $request->user()->id,
+            image: $request->file('image')
         );
 
-        // Execute action with optional image file
-        $post = $action($dto, $request->file('image'));
-
-        return response()->json([
-            'data' => new PostResource($post),
-        ], 201);
+        return new PostResource($post);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Post $post): JsonResponse
+    public function show(Post $post): PostResource
     {
-        $post->load('user')->loadCount('comments');
+        $post->load(['user', 'media'])->loadCount('comments');
 
-        return response()->json([
-            'data' => new PostResource($post),
-        ]);
+        return new PostResource($post);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdatePostRequest $request, Post $post, UpdatePostAction $action): JsonResponse
+    public function update(UpdatePostRequest $request, Post $post, UpdatePostAction $action): PostResource
     {
         $this->authorize('update', $post);
 
         $validated = $request->validated();
 
-        // Build DTO from validated data
-        $dto = new UpdatePostData(
+        $post = $action->handle(
+            post: $post,
             title: $validated['title'],
-            content: $validated['content']
+            content: $validated['content'],
+            image: $request->file('image')
         );
 
-        // Execute action with optional image file
-        $post = $action($post, $dto, $request->file('image'));
-
-        return response()->json([
-            'data' => new PostResource($post),
-        ]);
+        return new PostResource($post);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Post $post, DeletePostAction $action): JsonResponse
+    public function destroy(Post $post, DeletePostAction $action): Response
     {
         $this->authorize('delete', $post);
 
-        $action($post);
+        $action->handle($post);
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 
     /**
@@ -117,7 +91,7 @@ class PostController extends Controller
     {
         $search = $request->input('q', '');
 
-        $posts = Post::with('user')
+        $posts = Post::with(['user', 'media'])
             ->withCount('comments')
             ->where(function ($query) use ($search) {
                 $query->where('title', 'like', "%{$search}%")
@@ -127,54 +101,5 @@ class PostController extends Controller
             ->paginate(15);
 
         return PostResource::collection($posts);
-    }
-
-    /**
-     * Display a listing of trashed posts.
-     */
-    public function trashed(Request $request): AnonymousResourceCollection
-    {
-        $this->authorize('viewAny', Post::class);
-
-        $posts = Post::onlyTrashed()
-            ->with('user')
-            ->withCount('comments')
-            ->latest('deleted_at')
-            ->paginate(15);
-
-        return PostResource::collection($posts);
-    }
-
-    /**
-     * Restore a soft-deleted post.
-     */
-    public function restore(string $id, RestorePostAction $action): JsonResponse
-    {
-        $post = Post::onlyTrashed()->findOrFail($id);
-
-        $this->authorize('restore', $post);
-
-        $post = $action($post);
-
-        return response()->json([
-            'message' => 'Post restored successfully.',
-            'data' => new PostResource($post),
-        ]);
-    }
-
-    /**
-     * Permanently delete a soft-deleted post.
-     */
-    public function forceDelete(string $id, ForceDeletePostAction $action): JsonResponse
-    {
-        $post = Post::onlyTrashed()->findOrFail($id);
-
-        $this->authorize('forceDelete', $post);
-
-        $action($post);
-
-        return response()->json([
-            'message' => 'Post permanently deleted.',
-        ], 200);
     }
 }

@@ -2,15 +2,20 @@
 
 namespace App\Actions\Auth;
 
-use App\DTOs\RegisterUserData;
 use App\Services\AuthService;
 
 class RegisterUserAction
 {
     public function __construct(private AuthService $authService) {}
 
-    public function __invoke(RegisterUserData $data): array
+    public function handle(string $name, string $email, string $password): array
     {
-        return $this->authService->register($data->toArray());
+        $data = [
+            'name' => $name,
+            'email' => $email,
+            'password' => $password,
+        ];
+
+        return $this->authService->register($data);
     }
 }

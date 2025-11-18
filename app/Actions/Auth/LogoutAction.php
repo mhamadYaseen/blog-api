@@ -9,7 +9,7 @@ class LogoutAction
 {
     public function __construct(private AuthService $authService) {}
 
-    public function __invoke(User $user): bool
+    public function handle(User $user): bool
     {
         return $this->authService->logout($user);
     }

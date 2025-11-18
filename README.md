@@ -24,14 +24,13 @@ This is a pure API-only Laravel application that provides endpoints for managing
 -   ✅ User registration and authentication (Laravel Sanctum)
 -   ✅ JWT token-based API authentication
 -   ✅ Full CRUD operations for blog posts
--   ✅ Image upload support for posts
+-   ✅ Image uploads powered by Spatie Laravel Media Library (original + thumbnail URLs)
 -   ✅ Comments system for posts
 -   ✅ Authorization (only owners can update/delete their content)
 -   ✅ Search functionality for posts (query parameter & dedicated endpoint)
 -   ✅ API Resources for consistent JSON responses
 -   ✅ Pagination (15 posts per page)
--   ✅ Factory & Seeder support for test data and fake images
--   ✅ Soft Deletes for posts and comments
+-   ✅ Factory & Seeder support for rich test data
 -   ✅ API Rate Limiting (60 requests per minute)
 -   ✅ Request/Response Logging middleware
 -   ✅ Comprehensive test coverage
@@ -60,6 +59,17 @@ cd blog-api
 composer install
 npm install
 ```
+
+## 🖼 Media Handling
+
+-   Uses **spatie/laravel-medialibrary 11.x** for post cover uploads.
+-   Images are stored on the `public` disk inside the `cover` collection with automatic cleanup on delete.
+-   Two responsive conversions are generated synchronously (no queue):
+    -   `thumb` – 300x300 for previews
+    -   `large` – 1200x900 for full-width usage
+-   API responses expose both `image` (full URL) and `image_thumb` (thumbnail URL).
+-   Ensure `php artisan storage:link` has been run (handled during `composer setup`).
+-   Legacy `posts.image` column remains temporarily for backward compatibility and will be removed after data migration.
 
 ### Step 3: Environment Configuration
 
@@ -115,8 +125,8 @@ php artisan migrate
 This will create the following tables:
 
 -   `users` - User accounts
--   `posts` - Blog posts with user relationship and soft deletes
--   `comments` - Comments on posts with soft deletes
+-   `posts` - Blog posts with user relationship
+-   `comments` - Comments on posts
 -   `personal_access_tokens` - Sanctum authentication tokens
 
 ### Step 3: (Optional) Seed Sample Data
@@ -282,69 +292,9 @@ Authorization: Bearer {token}
 
 **GET** `/api/posts`
 
-**Query Parameters:**
+**Response (204 No Content)**
 
--   `search` (optional): Search by title or content
--   `page` (optional): Pagination page number
-
-**Response (200 OK):**
-
-```json
-{
-  "data": [
-    {
-      "id": 1,
-      "title": "My First Post",
-      "content": "This is the content of my first post.",
-      "image": "images/post1.jpg",
-      "user": {
-        "id": 1,
-        "name": "John Doe"
-      },
-      "created_at": "2025-11-12T10:30:00.000000Z",
-      "updated_at": "2025-11-12T10:30:00.000000Z"
-    }
-  ],
-  "links": {...},
-  "meta": {...}
-}
-```
-
-#### Get Single Post
-
-**GET** `/api/posts/{id}`
-
-**Response (200 OK):**
-
-```json
-{
-    "data": {
-        "id": 1,
-        "title": "My First Post",
-        "content": "This is the content of my first post.",
-        "image": "images/post1.jpg",
-        "user": {
-            "id": 1,
-            "name": "John Doe"
-        },
-        "comments_count": 5,
-        "created_at": "2025-11-12T10:30:00.000000Z",
-        "updated_at": "2025-11-12T10:30:00.000000Z"
-    }
-}
-```
-
-#### Create Post (Authenticated)
-
-**POST** `/api/posts`
-
-**Headers:**
-
-```
-Authorization: Bearer {token}
-Content-Type: multipart/form-data
-```
-
+**Note:** This action permanently removes the post from the database.
 **Request Body (Form Data):**
 
 ```
@@ -361,7 +311,8 @@ image: (file upload - optional)
         "id": 2,
         "title": "My New Post",
         "content": "This is the content of my post.",
-        "image": "images/xyz123.jpg",
+        "image": "https://storage.example.com/media/1/cover.jpg",
+        "image_thumb": "https://storage.example.com/media/1/conversions/cover-thumb.jpg",
         "user": {
             "id": 1,
             "name": "John Doe"
@@ -417,7 +368,7 @@ Authorization: Bearer {token}
 
 **Response (204 No Content)**
 
-**Note:** This performs a soft delete. The post is marked as deleted but remains in the database.
+**Note:** This action permanently removes the post from the database.
 
 ---
 
@@ -553,52 +504,9 @@ Authorization: Bearer {token}
 
 **Response (204 No Content)**
 
-**Note:** This performs a soft delete. The comment is marked as deleted but remains in the database.
+**Note:** This action permanently removes the comment from the database.
 
 ---
-
-#### Restore Deleted Comment (Authenticated, Owner Only)
-
-**POST** `/api/comments/{id}/restore`
-
-**Headers:**
-
-```
-Authorization: Bearer {token}
-```
-
-**Response (200 OK):**
-
-```json
-{
-    "message": "Comment restored successfully.",
-    "data": {
-        "id": 1,
-        "comment": "Restored comment text",
-        ...
-    }
-}
-```
-
----
-
-#### Permanently Delete Comment (Authenticated, Owner Only)
-
-**DELETE** `/api/comments/{id}/force`
-
-**Headers:**
-
-```
-Authorization: Bearer {token}
-```
-
-**Response (200 OK):**
-
-```json
-{
-    "message": "Comment permanently deleted."
-}
-```
 
 ---
 
@@ -647,70 +555,10 @@ All error responses follow this format:
 }
 ```
 
-**Not Found (404):**
+**Response (204 No Content)**
 
-```json
-{
-    "message": "Resource not found."
-}
-```
+**Note:** This action permanently removes the post from the database.
 
----
-
-## 📮 Postman Collection
-
-A complete **enhanced** Postman collection is included for easy API testing with automatic data generation!
-
-**File:** `Blog_API_Postman_Collection.json`
-
-### How to Import
-
-1. Open Postman
-2. Click **Import** button
-3. Select the `Blog_API_Postman_Collection.json` file
-4. The collection will be imported with all endpoints organized by category
-
-### ✨ New Features (v2.0)
-
--   ✅ **Auto-generated data** - Random names, emails, titles, content, comments
--   ✅ **Smart variable management** - Automatic saving of IDs (post_id, comment_id)
--   ✅ **Pre-request scripts** - Generate realistic test data before each request
--   ✅ **Test scripts** - Verify responses and log success/failure
--   ✅ **Console logging** - See generated data and results in Postman Console
--   ✅ **Zero manual input** - Just click Send, all data is generated
--   ✅ **Automatic token management** - Login/Register automatically saves token
--   ✅ **Environment variables** - `base_url`, `token`, `post_id`, `comment_id`, etc.
-
-### Included Endpoints
-
-**Authentication (4 endpoints):**
-
--   Register, Login, Logout, Get Current User
-
-**Posts (11 endpoints):**
-
--   List, Search, View, Create, Create with Image, Update, Delete
--   List Trashed, Restore, Force Delete
-
-**Comments (5 endpoints):**
-
--   List, Create, Delete, Restore, Force Delete
-
-### Usage
-
-1. Import the collection
-2. Click **Register** → Auto-generates user and saves token
-3. Click **Create Post** → Auto-generates title and content
-4. Click **Create Comment** → Auto-generates comment text
-5. All IDs are automatically saved and reused in subsequent requests!
-
-### 📘 Complete Guide
-
-See **`POSTMAN_COLLECTION_GUIDE.md`** for:
-
--   Detailed usage instructions
--   Response format examples
--   Testing workflows
 -   Troubleshooting tips
 -   Privacy notes (user emails hidden in posts/comments)
 
@@ -724,69 +572,9 @@ The project includes comprehensive test coverage with **45 tests** covering all 
 
 ```bash
 # Run all tests
-composer test
+**Response (204 No Content)**
 
-# Or directly with artisan
-php artisan test
-
-# Run specific test file
-php artisan test --filter=PostTest
-
-# Run specific test method
-php artisan test --filter=test_user_can_register
-
-# Run with coverage (requires Xdebug)
-php artisan test --coverage
-```
-
-### Test Coverage
-
-**Feature Tests (30 tests):**
-
--   ✅ Authentication: Registration, login, logout (6 tests)
--   ✅ Posts CRUD: Create, read, update, delete with authorization (15 tests)
--   ✅ Comments: Create, list, delete with authorization (9 tests)
-
-**Unit Tests (15 tests):**
-
--   ✅ User Model: Relationships, authentication (5 tests)
--   ✅ Post Model: Relationships, soft deletes (5 tests)
--   ✅ Comment Model: Relationships, soft deletes (5 tests)
-
-### Test Results
-
-All tests use `RefreshDatabase` trait for isolated database testing. Expected output:
-
-```
-Tests:  45 passed (184 assertions)
-Duration: 0.60s
-```
-
-## 📁 Project Structure
-
-```
-blog-api/
-├── app/
-│   ├── Http/
-│   │   ├── Controllers/
-│   │   │   ├── AuthController.php
-│   │   │   ├── PostController.php
-│   │   │   └── CommentController.php
-│   │   ├── Requests/
-│   │   │   ├── LoginRequest.php
-│   │   │   ├── RegisterRequest.php
-│   │   │   ├── StorePostRequest.php
-│   │   │   ├── UpdatePostRequest.php
-│   │   │   └── StoreCommentRequest.php
-│   │   └── Resources/
-│   │       ├── PostResource.php
-│   │       ├── CommentResource.php
-│   │       └── UserResource.php
-│   ├── Models/
-│   │   ├── User.php
-│   │   ├── Post.php
-│   │   └── Comment.php
-│   └── Policies/
+**Note:** This action permanently removes the post from the database.
 │       ├── PostPolicy.php
 │       └── CommentPolicy.php
 ├── database/

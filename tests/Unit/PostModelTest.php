@@ -30,31 +30,6 @@ class PostModelTest extends TestCase
         $this->assertInstanceOf(Comment::class, $post->comments->first());
     }
 
-    public function test_post_can_be_soft_deleted(): void
-    {
-        $post = Post::factory()->create();
-        $postId = $post->id;
-
-        $post->delete();
-
-        $this->assertSoftDeleted('posts', ['id' => $postId]);
-        $this->assertNotNull($post->fresh()->deleted_at);
-    }
-
-    public function test_post_can_be_restored_after_soft_delete(): void
-    {
-        $post = Post::factory()->create();
-        $post->delete();
-
-        $post->restore();
-
-        $this->assertNull($post->fresh()->deleted_at);
-        $this->assertDatabaseHas('posts', [
-            'id' => $post->id,
-            'deleted_at' => null,
-        ]);
-    }
-
     public function test_post_fillable_attributes(): void
     {
         $post = new Post;

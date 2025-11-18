@@ -96,7 +96,7 @@ class CommentTest extends TestCase
             ->deleteJson("/api/comments/{$comment->id}");
 
         $response->assertStatus(204);
-        $this->assertSoftDeleted('comments', ['id' => $comment->id]);
+        $this->assertDatabaseMissing('comments', ['id' => $comment->id]);
     }
 
     public function test_non_owner_cannot_delete_comment(): void
@@ -135,46 +135,5 @@ class CommentTest extends TestCase
 
         $this->assertEquals($newComment->id, $data[0]['id']);
         $this->assertEquals($oldComment->id, $data[1]['id']);
-    }
-
-    public function test_owner_can_restore_deleted_comment(): void
-    {
-        $user = User::factory()->create();
-        $comment = Comment::factory()->create(['user_id' => $user->id]);
-        $comment->delete();
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->postJson("/api/comments/{$comment->id}/restore");
-
-        $response->assertStatus(200)
-            ->assertJson([
-                'message' => 'Comment restored successfully.',
-            ]);
-
-        $this->assertDatabaseHas('comments', [
-            'id' => $comment->id,
-            'deleted_at' => null,
-        ]);
-    }
-
-    public function test_owner_can_force_delete_comment(): void
-    {
-        $user = User::factory()->create();
-        $comment = Comment::factory()->create(['user_id' => $user->id]);
-        $comment->delete();
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->deleteJson("/api/comments/{$comment->id}/force");
-
-        $response->assertStatus(200)
-            ->assertJson([
-                'message' => 'Comment permanently deleted.',
-            ]);
-
-        $this->assertDatabaseMissing('comments', [
-            'id' => $comment->id,
-        ]);
     }
 }

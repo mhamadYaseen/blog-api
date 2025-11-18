@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Actions\Auth\LoginAction;
 use App\Actions\Auth\LogoutAction;
 use App\Actions\Auth\RegisterUserAction;
-use App\DTOs\LoginData;
-use App\DTOs\RegisterUserData;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use Illuminate\Http\JsonResponse;
@@ -19,13 +17,14 @@ class AuthController extends Controller
      */
     public function register(RegisterRequest $request, RegisterUserAction $action): JsonResponse
     {
-        $dto = new RegisterUserData(
-            name: $request->validated()['name'],
-            email: $request->validated()['email'],
-            password: $request->validated()['password']
+        $validated = $request->validated();
+
+        $result = $action->handle(
+            name: $validated['name'],
+            email: $validated['email'],
+            password: $validated['password']
         );
 
-        $result = $action($dto);
         $user = $result['user'];
 
         return response()->json([
@@ -44,12 +43,12 @@ class AuthController extends Controller
      */
     public function login(LoginRequest $request, LoginAction $action): JsonResponse
     {
-        $dto = new LoginData(
-            email: $request->validated()['email'],
-            password: $request->validated()['password']
-        );
+        $validated = $request->validated();
 
-        $result = $action($dto);
+        $result = $action->handle(
+            email: $validated['email'],
+            password: $validated['password']
+        );
 
         if (!$result) {
             return response()->json([
@@ -74,7 +73,7 @@ class AuthController extends Controller
      */
     public function logout(Request $request, LogoutAction $action): JsonResponse
     {
-        $action($request->user());
+        $action->handle($request->user());
 
         return response()->json([
             'message' => 'Logged out successfully',

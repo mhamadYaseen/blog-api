@@ -12,9 +12,9 @@ class DeletePostAction
     ) {}
 
     /**
-     * Execute the action to soft delete a post.
+     * Delete a post and related resources.
      */
-    public function __invoke(Post $post): bool
+    public function handle(Post $post): bool
     {
         return $this->postService->delete($post);
     }

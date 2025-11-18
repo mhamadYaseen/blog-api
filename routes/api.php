@@ -30,16 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/posts/{post}', [PostController::class, 'update']);
     Route::delete('/posts/{post}', [PostController::class, 'destroy']);
 
-    // Soft delete management for posts
-    Route::get('/posts/trashed/list', [PostController::class, 'trashed']);
-    Route::post('/posts/{id}/restore', [PostController::class, 'restore']);
-    Route::delete('/posts/{id}/force', [PostController::class, 'forceDelete']);
-
     // Protected comment routes
     Route::post('/posts/{post}/comments', [CommentController::class, 'store']);
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
-
-    // Soft delete management for comments
-    Route::post('/comments/{id}/restore', [CommentController::class, 'restore']);
-    Route::delete('/comments/{id}/force', [CommentController::class, 'forceDelete']);
 });

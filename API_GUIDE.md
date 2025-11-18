@@ -125,7 +125,8 @@ image: (file upload - optional)
         "id": 1,
         "title": "My Blog Post",
         "content": "Post content here...",
-        "image": "images/abc123.jpg",
+        "image": "https://storage.example.com/media/1/cover.jpg",
+        "image_thumb": "https://storage.example.com/media/1/conversions/cover-thumb.jpg",
         "user": {
             "id": 1,
             "name": "John Doe"
@@ -153,7 +154,8 @@ GET /api/posts?page=1
             "id": 1,
             "title": "Post Title",
             "content": "Post content...",
-            "image": "images/pic.jpg",
+            "image": "https://storage.example.com/media/5/cover.jpg",
+            "image_thumb": "https://storage.example.com/media/5/conversions/cover-thumb.jpg",
             "user": {
                 "id": 1,
                 "name": "John Doe"
@@ -239,10 +241,10 @@ Content-Type: application/json
 
 ### Features
 
-✅ **Auto-generated data** - Random names, emails, titles, content, comments  
-✅ **Smart variables** - Token, post_id, comment_id automatically saved  
-✅ **Pre-request scripts** - Generate realistic data before requests  
-✅ **Test scripts** - Validate responses automatically  
+✅ **Auto-generated data** - Random names, emails, titles, content, comments
+✅ **Smart variables** - Token, post_id, comment_id automatically saved
+✅ **Pre-request scripts** - Generate realistic data before requests
+✅ **Test scripts** - Validate responses automatically
 ✅ **Console logging** - See what's happening
 
 ### Quick Usage
@@ -295,22 +297,22 @@ Status:   100% passing ✅
 
 ### Core Features
 
-✅ User registration & authentication (Sanctum)  
-✅ Posts CRUD with image upload  
-✅ Comments system  
-✅ Owner-only authorization  
-✅ API Resources for consistent responses  
+✅ User registration & authentication (Sanctum)
+✅ Posts CRUD with image upload
+✅ Comments system
+✅ Owner-only authorization
+✅ API Resources for consistent responses
 ✅ Input validation with Form Requests
 
 ### Bonus Features
 
-✅ Search posts (title & content)  
-✅ Pagination (15 per page)  
-✅ Soft deletes with restore  
-✅ Rate limiting (60/min)  
-✅ Request/response logging  
-✅ Test data factories & seeders  
-✅ Comprehensive test suite  
+✅ Search posts (title & content)
+✅ Pagination (15 per page)
+✅ Soft deletes with restore
+✅ Rate limiting (60/min)
+✅ Request/response logging
+✅ Test data factories & seeders
+✅ Comprehensive test suite
 ✅ Enhanced Postman collection
 
 ---
@@ -517,17 +519,17 @@ tail -f storage/logs/laravel.log  # Traditional tail
 
 ## 🎯 Best Practices Implemented
 
-✅ RESTful API design  
-✅ Token-based authentication  
-✅ Policy-based authorization  
-✅ API Resources for responses  
-✅ Form Request validation  
-✅ Soft deletes for data recovery  
-✅ Eager loading (avoid N+1)  
-✅ Pagination for large datasets  
-✅ Rate limiting  
-✅ Request/response logging  
-✅ Comprehensive testing  
+✅ RESTful API design
+✅ Token-based authentication
+✅ Policy-based authorization
+✅ API Resources for responses
+✅ Form Request validation
+✅ Soft deletes for data recovery
+✅ Eager loading (avoid N+1)
+✅ Pagination for large datasets
+✅ Rate limiting
+✅ Request/response logging
+✅ Comprehensive testing
 ✅ Factory/Seeder separation
 
 ---
@@ -566,12 +568,12 @@ tail -f storage/logs/laravel.log  # Traditional tail
 
 ## ✨ What Makes This API Special
 
-🎯 **Complete Implementation** - Every requirement + bonuses  
-🔒 **Privacy-Aware** - User emails protected in public endpoints  
-⚡ **Fast Testing** - Postman collection with auto-generation  
-📖 **Well-Documented** - Comprehensive guides and examples  
-🧪 **Fully Tested** - 45 tests, 100% passing  
-🚀 **Production-Ready** - Rate limiting, logging, validation  
+🎯 **Complete Implementation** - Every requirement + bonuses
+🔒 **Privacy-Aware** - User emails protected in public endpoints
+⚡ **Fast Testing** - Postman collection with auto-generation
+📖 **Well-Documented** - Comprehensive guides and examples
+🧪 **Fully Tested** - 45 tests, 100% passing
+🚀 **Production-Ready** - Rate limiting, logging, validation
 💎 **Clean Code** - Laravel best practices, PSR standards
 
 ---
@@ -601,7 +603,7 @@ tail -f storage/logs/laravel.log  # Traditional tail
 
 ---
 
-**Status:** ✅ Production Ready  
-**Version:** 2.0  
-**Last Updated:** November 12, 2025  
+**Status:** ✅ Production Ready
+**Version:** 2.0
+**Last Updated:** November 12, 2025
 **License:** MIT

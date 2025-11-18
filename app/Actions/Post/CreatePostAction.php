@@ -2,7 +2,6 @@
 
 namespace App\Actions\Post;
 
-use App\DTOs\CreatePostData;
 use App\Models\Post;
 use App\Services\PostService;
 use Illuminate\Http\UploadedFile;
@@ -16,12 +15,18 @@ class CreatePostAction
     /**
      * Execute the action to create a new post.
      */
-    public function __invoke(CreatePostData $data, ?UploadedFile $image = null): Post
+    public function handle(string $title, string $content, int $userId, ?UploadedFile $image = null): Post
     {
-        $post = $this->postService->create($data->toArray(), $image);
+        $data = [
+            'title' => $title,
+            'content' => $content,
+            'user_id' => $userId,
+        ];
+
+        $post = $this->postService->create($data, $image);
 
         // Load relationships needed for the response
-        $post->load('user');
+        $post->load(['user', 'media']);
 
         return $post;
     }

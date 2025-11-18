@@ -30,31 +30,6 @@ class CommentModelTest extends TestCase
         $this->assertEquals($post->id, $comment->post->id);
     }
 
-    public function test_comment_can_be_soft_deleted(): void
-    {
-        $comment = Comment::factory()->create();
-        $commentId = $comment->id;
-
-        $comment->delete();
-
-        $this->assertSoftDeleted('comments', ['id' => $commentId]);
-        $this->assertNotNull($comment->fresh()->deleted_at);
-    }
-
-    public function test_comment_can_be_restored_after_soft_delete(): void
-    {
-        $comment = Comment::factory()->create();
-        $comment->delete();
-
-        $comment->restore();
-
-        $this->assertNull($comment->fresh()->deleted_at);
-        $this->assertDatabaseHas('comments', [
-            'id' => $comment->id,
-            'deleted_at' => null,
-        ]);
-    }
-
     public function test_comment_fillable_attributes(): void
     {
         $comment = new Comment;

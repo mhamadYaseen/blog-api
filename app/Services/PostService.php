@@ -15,12 +15,14 @@ class PostService
     public function create(array $data, ?UploadedFile $image = null): Post
     {
         return DB::transaction(function () use ($data, $image) {
-            // Handle image upload if provided
+            $post = Post::create($data);
+
             if ($image) {
-                $data['image'] = $image->store('images', 'public');
+                $post->addMedia($image)
+                    ->toMediaCollection(Post::COVER_IMAGE_COLLECTION);
             }
 
-            return Post::create($data);
+            return $post->refresh();
         });
     }
 
@@ -30,16 +32,23 @@ class PostService
     public function update(Post $post, array $data, ?UploadedFile $image = null): Post
     {
         return DB::transaction(function () use ($post, $data, $image) {
-            // Handle image upload if provided
+            $post->update($data);
+
             if ($image) {
-                // Delete old image if exists
-                if ($post->image) {
+                if ($post->image && ! filter_var($post->image, FILTER_VALIDATE_URL)) {
                     Storage::disk('public')->delete($post->image);
                 }
-                $data['image'] = $image->store('images', 'public');
+
+                $post->clearMediaCollection(Post::COVER_IMAGE_COLLECTION);
+
+                $post->addMedia($image)
+                    ->toMediaCollection(Post::COVER_IMAGE_COLLECTION);
+
+                if ($post->image) {
+                    $post->forceFill(['image' => null])->save();
+                }
             }
 
-            $post->update($data);
             return $post->refresh();
         });
     }
@@ -50,27 +59,13 @@ class PostService
     public function delete(Post $post): bool
     {
         return DB::transaction(function () use ($post) {
-            // Delete image if exists
-            if ($post->image) {
-                Storage::disk('public')->delete($post->image);
-            }
+            $post->clearMediaCollection(Post::COVER_IMAGE_COLLECTION);
 
-            return $post->delete();
-        });
-    }
-
-    /**
-     * Permanently delete a post and its associated image.
-     */
-    public function forceDelete(Post $post): bool
-    {
-        return DB::transaction(function () use ($post) {
-            // Delete image if exists (check it's not a URL)
             if ($post->image && ! filter_var($post->image, FILTER_VALIDATE_URL)) {
                 Storage::disk('public')->delete($post->image);
             }
 
-            return $post->forceDelete();
+            return $post->delete();
         });
     }
 }
