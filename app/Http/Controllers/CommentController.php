@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Comment\CreateCommentAction;
+use App\Actions\Comment\DeleteCommentAction;
+use App\Actions\Comment\ForceDeleteCommentAction;
+use App\Actions\Comment\RestoreCommentAction;
+use App\DTOs\CreateCommentData;
 use App\Http\Requests\StoreCommentRequest;
 use App\Http\Resources\CommentResource;
 use App\Models\Comment;
@@ -24,14 +29,15 @@ class CommentController extends Controller
     /**
      * Store a newly created comment in storage.
      */
-    public function store(StoreCommentRequest $request, Post $post): JsonResponse
+    public function store(StoreCommentRequest $request, Post $post, CreateCommentAction $action): JsonResponse
     {
-        $comment = $post->comments()->create([
-            'comment' => $request->comment,
-            'user_id' => $request->user()->id,
-        ]);
+        $dto = new CreateCommentData(
+            comment: $request->validated()['comment'],
+            userId: $request->user()->id,
+            postId: $post->id
+        );
 
-        $comment->load('user');
+        $comment = $action($post, $dto);
 
         return response()->json([
             'data' => new CommentResource($comment),
@@ -41,11 +47,11 @@ class CommentController extends Controller
     /**
      * Remove the specified comment from storage.
      */
-    public function destroy(Comment $comment): JsonResponse
+    public function destroy(Comment $comment, DeleteCommentAction $action): JsonResponse
     {
         $this->authorize('delete', $comment);
 
-        $comment->delete();
+        $action($comment);
 
         return response()->json(null, 204);
     }
@@ -53,14 +59,13 @@ class CommentController extends Controller
     /**
      * Restore a soft-deleted comment.
      */
-    public function restore(string $id): JsonResponse
+    public function restore(string $id, RestoreCommentAction $action): JsonResponse
     {
         $comment = Comment::onlyTrashed()->findOrFail($id);
 
         $this->authorize('restore', $comment);
 
-        $comment->restore();
-        $comment->load('user', 'post');
+        $comment = $action($comment);
 
         return response()->json([
             'message' => 'Comment restored successfully.',
@@ -71,13 +76,13 @@ class CommentController extends Controller
     /**
      * Permanently delete a soft-deleted comment.
      */
-    public function forceDelete(string $id): JsonResponse
+    public function forceDelete(string $id, ForceDeleteCommentAction $action): JsonResponse
     {
         $comment = Comment::onlyTrashed()->findOrFail($id);
 
         $this->authorize('forceDelete', $comment);
 
-        $comment->forceDelete();
+        $action($comment);
 
         return response()->json([
             'message' => 'Comment permanently deleted.',
