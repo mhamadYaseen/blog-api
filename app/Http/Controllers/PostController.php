@@ -2,6 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Post\CreatePostAction;
+use App\Actions\Post\DeletePostAction;
+use App\Actions\Post\ForceDeletePostAction;
+use App\Actions\Post\RestorePostAction;
+use App\Actions\Post\UpdatePostAction;
+use App\DTOs\CreatePostData;
+use App\DTOs\UpdatePostData;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\PostResource;
@@ -9,7 +16,6 @@ use App\Models\Post;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
@@ -37,18 +43,20 @@ class PostController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StorePostRequest $request): JsonResponse
+    public function store(StorePostRequest $request, CreatePostAction $action): JsonResponse
     {
-        $data = $request->validated();
-        $data['user_id'] = $request->user()->id;
+        $validated = $request->validated();
 
-        // Handle image upload
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('images', 'public');
-        }
+        // Build DTO from validated data
+        $dto = new CreatePostData(
+            title: $validated['title'],
+            content: $validated['content'],
+            imagePath: null, // Will be handled by service
+            userId: $request->user()->id
+        );
 
-        $post = Post::create($data);
-        $post->load('user');
+        // Execute action with optional image file
+        $post = $action($dto, $request->file('image'));
 
         return response()->json([
             'data' => new PostResource($post),
@@ -70,23 +78,20 @@ class PostController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdatePostRequest $request, Post $post): JsonResponse
+    public function update(UpdatePostRequest $request, Post $post, UpdatePostAction $action): JsonResponse
     {
         $this->authorize('update', $post);
 
-        $data = $request->validated();
+        $validated = $request->validated();
 
-        // Handle image upload
-        if ($request->hasFile('image')) {
-            // Delete old image if exists
-            if ($post->image) {
-                Storage::disk('public')->delete($post->image);
-            }
-            $data['image'] = $request->file('image')->store('images', 'public');
-        }
+        // Build DTO from validated data
+        $dto = new UpdatePostData(
+            title: $validated['title'],
+            content: $validated['content']
+        );
 
-        $post->update($data);
-        $post->load('user');
+        // Execute action with optional image file
+        $post = $action($post, $dto, $request->file('image'));
 
         return response()->json([
             'data' => new PostResource($post),
@@ -96,16 +101,11 @@ class PostController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Post $post): JsonResponse
+    public function destroy(Post $post, DeletePostAction $action): JsonResponse
     {
         $this->authorize('delete', $post);
 
-        // Delete image if exists
-        if ($post->image) {
-            Storage::disk('public')->delete($post->image);
-        }
-
-        $post->delete();
+        $action($post);
 
         return response()->json(null, 204);
     }
@@ -148,14 +148,13 @@ class PostController extends Controller
     /**
      * Restore a soft-deleted post.
      */
-    public function restore(string $id): JsonResponse
+    public function restore(string $id, RestorePostAction $action): JsonResponse
     {
         $post = Post::onlyTrashed()->findOrFail($id);
 
         $this->authorize('restore', $post);
 
-        $post->restore();
-        $post->load('user')->loadCount('comments');
+        $post = $action($post);
 
         return response()->json([
             'message' => 'Post restored successfully.',
@@ -166,18 +165,13 @@ class PostController extends Controller
     /**
      * Permanently delete a soft-deleted post.
      */
-    public function forceDelete(string $id): JsonResponse
+    public function forceDelete(string $id, ForceDeletePostAction $action): JsonResponse
     {
         $post = Post::onlyTrashed()->findOrFail($id);
 
         $this->authorize('forceDelete', $post);
 
-        // Delete image if exists
-        if ($post->image && ! filter_var($post->image, FILTER_VALIDATE_URL)) {
-            Storage::disk('public')->delete($post->image);
-        }
-
-        $post->forceDelete();
+        $action($post);
 
         return response()->json([
             'message' => 'Post permanently deleted.',
