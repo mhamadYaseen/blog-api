@@ -2,9 +2,9 @@
 
 namespace Modules\Comments\Database\Seeders;
 
-use Modules\Comments\Models\Comment;
-use Modules\Posts\Models\Post;
-use Modules\Users\Models\User;
+use Modules\Comments\App\Models\Comment;
+use Modules\Posts\App\Models\Post;
+use Modules\Users\App\Models\User;
 use Illuminate\Database\Seeder;
 
 class CommentSeeder extends Seeder

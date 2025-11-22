@@ -3,12 +3,12 @@
 namespace Modules\Comments\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Modules\Comments\Models\Comment;
-use Modules\Posts\Models\Post;
-use Modules\Users\Models\User;
+use Modules\Comments\App\Models\Comment;
+use Modules\Posts\App\Models\Post;
+use Modules\Users\App\Models\User;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Comments\Models\Comment>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Comments\App\Models\Comment>
  */
 class CommentFactory extends Factory
 {

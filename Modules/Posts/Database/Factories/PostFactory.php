@@ -2,12 +2,12 @@
 
 namespace Modules\Posts\Database\Factories;
 
-use Modules\Posts\Models\Post;
-use Modules\Users\Models\User;
+use Modules\Posts\App\Models\Post;
+use Modules\Users\App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Posts\Models\Post>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Posts\App\Models\Post>
  */
 class PostFactory extends Factory
 {

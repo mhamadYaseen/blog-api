@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Comments\Controllers\CommentController;
+use Modules\Comments\App\Http\Controllers\CommentController;
 
 Route::prefix('api')->middleware('api')->group(function () {
     // Public comment routes

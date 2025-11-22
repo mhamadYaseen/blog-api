@@ -2,7 +2,7 @@
 
 namespace Modules\Users\Tests\Feature;
 
-use Modules\Users\Models\User;
+use Modules\Users\App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

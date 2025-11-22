@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Modules\Users\Controllers\AuthController;
+use Modules\Users\App\Http\Controllers\AuthController;
 
 Route::prefix('api')->middleware('api')->group(function () {
     // Public auth routes

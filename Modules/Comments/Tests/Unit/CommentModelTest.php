@@ -2,9 +2,9 @@
 
 namespace Modules\Comments\Tests\Unit;
 
-use Modules\Comments\Models\Comment;
-use Modules\Posts\Models\Post;
-use Modules\Users\Models\User;
+use Modules\Comments\App\Models\Comment;
+use Modules\Posts\App\Models\Post;
+use Modules\Users\App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

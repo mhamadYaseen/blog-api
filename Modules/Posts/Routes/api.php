@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Posts\Controllers\PostController;
+use Modules\Posts\App\Http\Controllers\PostController;
 
 Route::prefix('api')->middleware('api')->group(function () {
     // Public post routes

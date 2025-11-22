@@ -6,7 +6,7 @@ return [
     /*
      * Module Service Providers
      */
-    Modules\Users\Providers\UsersServiceProvider::class,
-    Modules\Posts\Providers\PostsServiceProvider::class,
-    Modules\Comments\Providers\CommentsServiceProvider::class,
+    Modules\Users\App\Providers\UsersServiceProvider::class,
+    Modules\Posts\App\Providers\PostsServiceProvider::class,
+    Modules\Comments\App\Providers\CommentsServiceProvider::class,
 ];

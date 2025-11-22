@@ -2,8 +2,8 @@
 
 namespace Modules\Posts\Database\Seeders;
 
-use Modules\Posts\Models\Post;
-use Modules\Users\Models\User;
+use Modules\Posts\App\Models\Post;
+use Modules\Users\App\Models\User;
 use Illuminate\Database\Seeder;
 
 class PostSeeder extends Seeder

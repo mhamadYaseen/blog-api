@@ -2,8 +2,8 @@
 
 namespace Modules\Posts\Tests\Feature;
 
-use Modules\Posts\Models\Post;
-use Modules\Users\Models\User;
+use Modules\Posts\App\Models\Post;
+use Modules\Users\App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
