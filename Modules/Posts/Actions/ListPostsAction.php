@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Actions\Post;
+namespace Modules\Posts\Actions;
 
-use App\Models\Post;
+use Modules\Posts\Models\Post;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ListPostsAction

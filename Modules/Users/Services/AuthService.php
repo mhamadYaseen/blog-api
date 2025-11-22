@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace Modules\Users\Services;
 
-use App\Models\User;
+use Modules\Users\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;

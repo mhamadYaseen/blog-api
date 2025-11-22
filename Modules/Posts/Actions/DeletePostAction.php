@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Actions\Post;
+namespace Modules\Posts\Actions;
 
-use App\Models\Post;
-use App\Services\PostService;
+use Modules\Posts\Models\Post;
+use Modules\Posts\Services\PostService;
 
 class DeletePostAction
 {

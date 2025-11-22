@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Actions\Comment;
+namespace Modules\Comments\Actions;
 
-use App\Models\Post;
+use Modules\Posts\Models\Post;
 use Illuminate\Database\Eloquent\Collection;
 
 class ListCommentsAction

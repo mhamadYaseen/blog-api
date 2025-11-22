@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Services;
+namespace Modules\Comments\Services;
 
-use App\Models\Comment;
-use App\Models\Post;
+use Modules\Comments\Models\Comment;
+use Modules\Posts\Models\Post;
 use Illuminate\Support\Facades\DB;
 
 class CommentService

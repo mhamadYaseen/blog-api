@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Actions\Comment;
+namespace Modules\Comments\Actions;
 
-use App\Models\Comment;
-use App\Services\CommentService;
+use Modules\Comments\Models\Comment;
+use Modules\Comments\Services\CommentService;
 
 class DeleteCommentAction
 {

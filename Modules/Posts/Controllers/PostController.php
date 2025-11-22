@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace Modules\Posts\Controllers;
 
-use App\Actions\Post\CreatePostAction;
-use App\Actions\Post\DeletePostAction;
-use App\Actions\Post\ListPostsAction;
-use App\Actions\Post\UpdatePostAction;
-use App\Http\Requests\StorePostRequest;
-use App\Http\Requests\UpdatePostRequest;
-use App\Http\Resources\PostResource;
-use App\Models\Post;
+use App\Http\Controllers\Controller;
+use Modules\Posts\Actions\CreatePostAction;
+use Modules\Posts\Actions\DeletePostAction;
+use Modules\Posts\Actions\ListPostsAction;
+use Modules\Posts\Actions\UpdatePostAction;
+use Modules\Posts\Requests\StorePostRequest;
+use Modules\Posts\Requests\UpdatePostRequest;
+use Modules\Posts\Resources\PostResource;
+use Modules\Posts\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;

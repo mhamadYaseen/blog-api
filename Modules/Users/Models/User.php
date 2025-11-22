@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Users\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +11,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<\Modules\Users\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
@@ -49,11 +49,19 @@ class User extends Authenticatable
     }
 
     /**
+     * Configure the model factory.
+     */
+    protected static function newFactory()
+    {
+        return \Modules\Users\Database\Factories\UserFactory::new();
+    }
+
+    /**
      * Get the posts for the user.
      */
     public function posts(): HasMany
     {
-        return $this->hasMany(Post::class);
+        return $this->hasMany(\Modules\Posts\Models\Post::class);
     }
 
     /**
@@ -61,6 +69,6 @@ class User extends Authenticatable
      */
     public function comments(): HasMany
     {
-        return $this->hasMany(Comment::class);
+        return $this->hasMany(\Modules\Comments\Models\Comment::class);
     }
 }

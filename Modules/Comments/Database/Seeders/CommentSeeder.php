@@ -1,10 +1,10 @@
 <?php
 
-namespace Database\Seeders;
+namespace Modules\Comments\Database\Seeders;
 
-use App\Models\Comment;
-use App\Models\Post;
-use App\Models\User;
+use Modules\Comments\Models\Comment;
+use Modules\Posts\Models\Post;
+use Modules\Users\Models\User;
 use Illuminate\Database\Seeder;
 
 class CommentSeeder extends Seeder

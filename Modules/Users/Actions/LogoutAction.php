@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Actions\Auth;
+namespace Modules\Users\Actions;
 
-use App\Models\User;
-use App\Services\AuthService;
+use Modules\Users\Models\User;
+use Modules\Users\Services\AuthService;
 
 class LogoutAction
 {

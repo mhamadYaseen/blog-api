@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Actions\Comment;
+namespace Modules\Comments\Actions;
 
-use App\Models\Comment;
-use App\Models\Post;
-use App\Services\CommentService;
+use Modules\Comments\Models\Comment;
+use Modules\Posts\Models\Post;
+use Modules\Comments\Services\CommentService;
 
 class CreateCommentAction
 {

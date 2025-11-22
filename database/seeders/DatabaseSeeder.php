@@ -15,8 +15,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            PostSeeder::class,
-            CommentSeeder::class,
+            \Modules\Posts\Database\Seeders\PostSeeder::class,
+            \Modules\Comments\Database\Seeders\CommentSeeder::class,
         ]);
     }
 }

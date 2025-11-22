@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace Modules\Users\Controllers;
 
-use App\Actions\Auth\LoginAction;
-use App\Actions\Auth\LogoutAction;
-use App\Actions\Auth\RegisterUserAction;
-use App\Http\Requests\LoginRequest;
-use App\Http\Requests\RegisterRequest;
+use Modules\Users\Actions\LoginAction;
+use Modules\Users\Actions\LogoutAction;
+use Modules\Users\Actions\RegisterUserAction;
+use Modules\Users\Requests\LoginRequest;
+use Modules\Users\Requests\RegisterRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
 class AuthController extends Controller
 {

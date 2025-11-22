@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Posts\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -27,6 +27,14 @@ class Post extends Model implements HasMedia
         'content',
         'image',
     ];
+
+    /**
+     * Configure the model factory.
+     */
+    protected static function newFactory()
+    {
+        return \Modules\Posts\Database\Factories\PostFactory::new();
+    }
 
     /**
      * Register the cover image collection.
@@ -90,7 +98,7 @@ class Post extends Model implements HasMedia
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(\Modules\Users\Models\User::class);
     }
 
     /**
@@ -98,7 +106,7 @@ class Post extends Model implements HasMedia
      */
     public function comments(): HasMany
     {
-        return $this->hasMany(Comment::class);
+        return $this->hasMany(\Modules\Comments\Models\Comment::class);
     }
 
     /**

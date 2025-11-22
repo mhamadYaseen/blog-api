@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace Modules\Comments\Controllers;
 
-use App\Actions\Comment\CreateCommentAction;
-use App\Actions\Comment\DeleteCommentAction;
-use App\Actions\Comment\ListCommentsAction;
-use App\Http\Requests\StoreCommentRequest;
-use App\Http\Resources\CommentResource;
-use App\Models\Comment;
-use App\Models\Post;
+use App\Http\Controllers\Controller;
+use Modules\Comments\Actions\CreateCommentAction;
+use Modules\Comments\Actions\DeleteCommentAction;
+use Modules\Comments\Actions\ListCommentsAction;
+use Modules\Comments\Requests\StoreCommentRequest;
+use Modules\Comments\Resources\CommentResource;
+use Modules\Comments\Models\Comment;
+use Modules\Posts\Models\Post;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 

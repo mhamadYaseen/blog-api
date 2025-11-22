@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Policies;
+namespace Modules\Posts\Policies;
 
-use App\Models\Post;
-use App\Models\User;
+use Modules\Posts\Models\Post;
+use Modules\Users\Models\User;
 
 class PostPolicy
 {

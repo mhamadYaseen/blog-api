@@ -1,9 +1,9 @@
 <?php
 
-namespace Database\Seeders;
+namespace Modules\Posts\Database\Seeders;
 
-use App\Models\Post;
-use App\Models\User;
+use Modules\Posts\Models\Post;
+use Modules\Users\Models\User;
 use Illuminate\Database\Seeder;
 
 class PostSeeder extends Seeder

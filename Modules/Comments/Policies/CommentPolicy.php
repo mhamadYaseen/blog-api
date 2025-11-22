@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Policies;
+namespace Modules\Comments\Policies;
 
-use App\Models\Comment;
-use App\Models\User;
+use Modules\Comments\Models\Comment;
+use Modules\Users\Models\User;
 
 class CommentPolicy
 {

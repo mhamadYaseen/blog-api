@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Actions\Auth;
+namespace Modules\Users\Actions;
 
-use App\Services\AuthService;
+use Modules\Users\Services\AuthService;
 
 class RegisterUserAction
 {

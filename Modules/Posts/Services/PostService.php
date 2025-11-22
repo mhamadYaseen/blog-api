@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace Modules\Posts\Services;
 
-use App\Models\Post;
+use Modules\Posts\Models\Post;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;

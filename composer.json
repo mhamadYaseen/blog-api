@@ -23,13 +23,17 @@
     "autoload": {
         "psr-4": {
             "App\\": "app/",
+            "Modules\\": "Modules/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests/"
+            "Tests\\": "tests/",
+            "Modules\\Users\\Tests\\": "Modules/Users/Tests/",
+            "Modules\\Posts\\Tests\\": "Modules/Posts/Tests/",
+            "Modules\\Comments\\Tests\\": "Modules/Comments/Tests/"
         }
     },
     "scripts": {
