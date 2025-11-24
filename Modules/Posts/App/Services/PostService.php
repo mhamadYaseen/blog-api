@@ -35,9 +35,7 @@ class PostService
             $post->update($data);
 
             if ($image) {
-                if ($post->image && ! filter_var($post->image, FILTER_VALIDATE_URL)) {
-                    Storage::disk('public')->delete($post->image);
-                }
+
 
                 $post->clearMediaCollection(Post::COVER_IMAGE_COLLECTION);
 
@@ -61,9 +59,6 @@ class PostService
         return DB::transaction(function () use ($post) {
             $post->clearMediaCollection(Post::COVER_IMAGE_COLLECTION);
 
-            if ($post->image && ! filter_var($post->image, FILTER_VALIDATE_URL)) {
-                Storage::disk('public')->delete($post->image);
-            }
 
             return $post->delete();
         });
